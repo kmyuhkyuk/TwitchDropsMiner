@@ -1,9 +1,11 @@
-# AGENTS.md
+# Agent Instructions
 
 
-## AGENTS.md Specific Instructions
+## Repository Instructions
 
-This file provides guidance to AI Agents when working with code in this repository.
+This file is the canonical harness for AI agents working in this repository.
+`CLAUDE.md` and `GEMINI.md` are relative symbolic links to `AGENTS.md` so every agent
+reads the same guidance. Maintain all shared and agent-specific instructions here.
 
 ## Development Guidelines
 
@@ -24,8 +26,8 @@ This file provides guidance to AI Agents when working with code in this reposito
    - Frontend translation rendering must use safe DOM construction. Do not inject translated strings with non-clearing `innerHTML`; allowlist any intentional links and build them as DOM nodes.
 
 5. **Documentation**:
-   - Always update `README.md` and all agent instruction files when making changes.
-   - The contents of all agent instruction files should be identical except for the `Specific Instructions` section. Any agent-specific instructions must be added to that section.
+   - Always update `README.md` and `AGENTS.md` when making changes.
+   - Keep `CLAUDE.md` and `GEMINI.md` as relative symbolic links to `AGENTS.md`; do not replace them with duplicated text. Put any agent-specific instructions in clearly named sections of `AGENTS.md`.
 
 ## Project Overview
 
@@ -60,6 +62,7 @@ src/
 │   └── managers/    # Individual UI managers (status, console, channels, campaigns, inventory, login, settings, cache, broadcaster)
 ├── services/        # Business logic services (channel, inventory, watch, maintenance, message_handlers)
 ├── core/            # Core client (Twitch client)
+├── drop_history.py  # Claimed drop history store (JSON persistence + CSV/JSON export)
 ├── exceptions.py    # Custom exceptions
 ├── version.py       # Version string
 └── __main__.py      # Entry point
@@ -115,6 +118,20 @@ lang/                # Translation JSON files (20 languages)
 
 - `DropsCampaign`: Campaign with game, timeframe, allowed channels
 - Time-based eligibility and progress tracking
+- Special Events (`509663`) and IRL (`509672`) are identified by `Game.is_special()`.
+  Their campaigns can progress across categories only on live channels in a non-empty,
+  enabled ACL. Without an ACL, the streamed category must still match. Explicit
+  `ignore_channel_status=True` checks retain their discovery-only status bypass.
+- `WatchService.can_watch()` requires the campaign's game in `wanted_games`, a live
+  channel, and `campaign.can_earn(channel)`. Special categories bypass the channel's
+  drops-enabled flag; regular campaigns still require it. Account eligibility, campaign
+  and drop timing, prerequisites, claims, and ignore rules remain enforced.
+- Channel priority still uses the streamed category; channels outside `wanted_games`
+  retain `MAX_INT` fallback priority. Preserve special-category eligibility when changing
+  watch selection; do not reintroduce an unconditional campaign/channel game equality gate.
+- `WatchService.should_switch()` allows replacement of an unwatchable current channel
+  before comparing priorities. Healthy streams keep the existing priority rules; tied
+  `MAX_INT` participants must still take over after an offline or ineligible stream.
 
 **src/models/drop.py** - Drop types:
 
@@ -131,7 +148,7 @@ lang/                # Translation JSON files (20 languages)
 
 **src/web/app.py** - FastAPI application:
 
-- REST API endpoints: `/api/status`, `/api/channels`, `/api/campaigns`, `/api/settings`, `/api/login`, `/api/oauth/confirm`, `/api/reload`, `/api/cache/clear`, `/api/close`, `/api/version`
+- REST API endpoints: `/api/status`, `/api/channels`, `/api/campaigns`, `/api/settings`, `/api/login`, `/api/oauth/confirm`, `/api/reload`, `/api/cache/clear`, `/api/close`, `/api/version`, `/api/history`, `/api/history/export.csv`, `/api/history/stats`
 - Socket.IO server for real-time bi-directional communication
 - Serves static web frontend from `web/` directory
 - Integrates with WebGUIManager via `set_managers()`
@@ -153,7 +170,14 @@ lang/                # Translation JSON files (20 languages)
 **src/config/settings.py** - Application settings:
 
 - Games to watch list (auto-populated from available campaigns if empty)
-- Games can also be added manually from the web settings search box
+- Games can also be added manually from the web settings search box. Exact and
+  unique partial matches resolve to available game names; ambiguous matches do not
+  add a game. Confirmations support keyboard focus and Escape. Select All preserves
+  priority order and manual entries, and manual confirmation uses current settings.
+- Games to Watch supports drag ordering and editable integer priority numbers. Clamp valid
+  ranks to the list bounds; reject blank/fractional values without changing settings.
+  Keep priority and remove-control labels translated and accessible. Regression tests in
+  `tests/test_game_priority.py` cover order, bounds, invalid inputs, and persistence calls.
 - Connection quality multiplier
 - Language selection
 - Proxy support (including verification)
@@ -209,6 +233,35 @@ progress to an ignored drop while the miner intentionally targets another reward
 - Device ID from Twitch's `unique_id` cookie
 - Session ID generated per run
 - Client info defined in `src/config/client_info.py` (presents as Android app with Client-Id and User-Agent spoofing)
+
+### Dashboard authentication
+
+- `src/web/auth.py` owns optional password-only dashboard protection, separate from Twitch
+  OAuth and ordinary settings. It defaults off and stores a salted scrypt hash and SHA-256
+  session-token digests in `data/web_auth.json` using atomic replacement; corrupt state must
+  fail closed. Never expose these credentials in settings, broadcasts, validation errors,
+  logs, or cache operations. Use one miner process per data directory.
+- `AuthMiddleware` guards FastAPI and the outer Socket.IO ASGI app. Only login resources,
+  auth status, and `/healthz` are public when enabled. Unsafe HTTP requests require
+  `X-TDM-Request: 1`; writes and Socket.IO reject foreign origins. Forwarded headers must
+  only be trusted from configured reverse proxies; HTTPS enables Secure cookies.
+- Default cookies are HttpOnly, SameSite=Strict session cookies. Remember me adds a fixed
+  30-day Max-Age; server sessions also expire after 30 days and survive restarts. Logout
+  revokes the current session; password changes require the current password and revoke
+  other sessions. Disabling auth requires the current password and clears all credentials.
+- `AuthSocketServer` rechecks authorization on events and broadcasts, disconnects revoked
+  sessions, and schedules idle connections to close at expiry. Enabling auth must evict
+  already connected anonymous clients before subsequent private broadcasts.
+- `web/static/auth.js` owns login/settings behavior and adds the same-origin write header.
+  A failed initial auth-status request must leave login available for retry without a
+  reload; settings controls stay disabled until auth state is known.
+  Keep all UI strings in `gui.auth` across all locales and render them using textContent.
+  Local auth assets use the release version cache key; bump through the release workflow
+  before deploying changes to existing auth assets, as with app.js and styles.css.
+- `tests/test_web_auth.py` and `tests/test_web_auth_frontend.py` cover access control,
+  credential persistence, cookie lifetimes, CSRF, rate limiting, revocation, and UI errors.
+  Docker checks `/healthz`, not the protected `/api/status`. Recovery is local: stop the
+  miner, restrict access, remove only `data/web_auth.json`, restart and set a new password.
 
 ### Drop Mining Mechanism
 
@@ -303,6 +356,8 @@ login_text = _.t["login"]["status"]["logged_in"]  # Returns "Logged in"
 - **src/config/client_info.py** - Twitch client info (Client-Id, User-Agent)
 - **src/config/settings.py** - Application settings with JSON persistence
 - **src/exceptions.py** - Custom exceptions (MinerException, ExitRequest, RequestException, RequestInvalid, WebsocketClosed, LoginException, CaptchaRequired, GQLException)
+- **src/drop_history.py** - Claimed-drop history store (`DropHistory`) with atomic JSON
+  persistence, filtering, stats, and CSV export; recorded on every successful drop claim
 - **src/utils/** - Helper utilities (string_utils, json_utils, async_helpers, rate_limiter, backoff)
 - **src/i18n/** - Internationalization package with TypedDict schema and Translator class
   - **translator.py** - Translator class with typed translation schema (Translation TypedDict)
@@ -372,7 +427,8 @@ The suite covers settings and proxy behavior, inventory-filter behavior, API fil
 GraphQL watch events, batched channel discovery, full-locale translation schema and
 placeholder consistency, frontend DOM safety, case-insensitive channel filtering,
 watch-drop count and expiry semantics, immediate claim refresh behavior, consecutive
-no-campaign console collapsing, and contributor README automation. Frontend behavior tests
+no-campaign console collapsing, contributor README automation, and the claimed-drop
+history store with CSV export and API endpoints. Frontend behavior tests
 share their JavaScript extraction helper and use Node.js;
 the validation workflow provisions Node 24 before running pytest. It also runs the release
 script contract tests under `.github/scripts/test/`. Ignore-list coverage includes
@@ -381,6 +437,11 @@ Wanted Queue guard, watch selection, truthful ignored/skipped inventory state, t
 placeholder parity, and frontend rendering. Changes to `web/static/app.js` or
 `web/static/styles.css` still require the release workflow to bump the application version
 and asset cache key before deployment.
+
+`tests/test_special_game_watch.py` covers Special Events and IRL across streamed categories,
+missing category/drops flags, offline and nonparticipating channels, disabled or absent ACLs,
+Games to Watch selection, campaign/drop eligibility, active-campaign selection, and fallback
+priority and failover. It uses mocked Twitch state and does not verify live Twitch progress.
 
 ### Continuous Integration
 
@@ -424,15 +485,15 @@ The application uses a web-based interface accessible via browser:
 
 **src/web/app.py** - FastAPI application:
 
-- REST API endpoints: `/api/status`, `/api/channels`, `/api/campaigns`, `/api/settings`, `/api/login`, `/api/oauth/confirm`, `/api/reload`, `/api/cache/clear`, `/api/close`, `/api/version`
+- REST API endpoints: `/api/status`, `/api/channels`, `/api/campaigns`, `/api/settings`, `/api/login`, `/api/oauth/confirm`, `/api/reload`, `/api/cache/clear`, `/api/close`, `/api/version`, `/api/history`, `/api/history/export.csv`, `/api/history/stats`
 - Socket.IO server for real-time bi-directional communication
 - Serves static web frontend from `web/` directory
 - Integrates with WebGUIManager via `set_managers()`
 
 **web/** - Frontend assets:
 
-- `index.html` - Single-page application layout with tabs
-- `static/app.js` - Socket.IO client, real-time UI updates, API calls, Inventory Filtering logic
+- `index.html` - Single-page application layout with tabs (Main, Inventory, History, Settings, Help)
+- `static/app.js` - Socket.IO client, real-time UI updates, API calls, Inventory Filtering and Drop History logic
 - `static/styles.css` - Responsive design with dark mode support
 
 ### Communication Protocol
@@ -468,7 +529,7 @@ The application uses a web-based interface accessible via browser:
 - Based on `python:3`
 - Installs dependencies from `pyproject.toml`
 - Exposes port 8080
-- Health check on `/api/status`
+- Health check on the public `/healthz` endpoint
 
 **docker-compose.yml:**
 
@@ -499,3 +560,12 @@ The application uses a web-based interface accessible via browser:
 - Channel points mining
 - Mining for unlinked campaigns
 - Desktop GUI
+
+### Claimed Drop History
+
+`DropHistory` records successful claims locally in `data/drop_history.json`, deduplicated
+by drop ID. The History tab provides game/date filters, pagination, statistics, CSV export,
+and confirmed local deletion. Date-only filters mean midnight UTC; aware timestamps
+preserve their instant. CSV attachment names use UTF-8 percent encoding with an ASCII
+fallback. History text is defined in `gui.history` for every locale and rendered as text.
+Tests cover persistence, filtering, Unicode exports, offsets, and translated UI behavior.

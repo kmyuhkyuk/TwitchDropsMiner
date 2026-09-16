@@ -32,6 +32,32 @@
         "no_connection": "Nie można połączyć się z Twitchem. Spróbuj ponownie za {seconds} s...."
     },
     "gui": {
+        "auth": {
+            "title": "Hasło panelu",
+            "help": "Chroń panel jednym hasłem. Zmiana wylogowuje inne sesje. Wyłączenie ochrony usuwa hasło.",
+            "login_title": "Odblokuj panel",
+            "password": "Hasło",
+            "remember": "Zapamiętaj mnie na 30 dni",
+            "login": "Zaloguj się",
+            "logout": "Wyloguj się",
+            "current_password": "Obecne hasło",
+            "new_password": "Nowe hasło (co najmniej 8 znaków)",
+            "confirm_password": "Potwierdź nowe hasło",
+            "enable": "Włącz ochronę hasłem",
+            "change": "Zmień hasło",
+            "disable": "Wyłącz ochronę i usuń hasło",
+            "enabled": "Ochrona hasłem jest włączona.",
+            "disabled": "Ochrona hasłem jest wyłączona.",
+            "invalid_password": "Nieprawidłowe hasło.",
+            "password_length": "Użyj od 8 do 1024 znaków.",
+            "password_mismatch": "Hasła nie są zgodne.",
+            "rate_limited": "Zbyt wiele prób. Poczekaj minutę i spróbuj ponownie.",
+            "auth_changed": "Ustawienia logowania uległy zmianie. Odśwież stronę.",
+            "authentication_required": "Zaloguj się ponownie.",
+            "forbidden": "Żądanie zablokowane. Otwórz aplikację bezpośrednio i spróbuj ponownie.",
+            "invalid_request": "Nieprawidłowe żądanie.",
+            "request_failed": "Żądanie nie powiodło się. Spróbuj ponownie."
+        },
         "output": "Dziennik zdarzeń",
         "status": {
             "name": "Status",
@@ -50,7 +76,8 @@
             "main": "Główna",
             "inventory": "Ekwipunek",
             "settings": "Ustawienia",
-            "help": "Pomoc"
+            "help": "Pomoc",
+            "history": "Historia"
         },
         "login": {
             "name": "Logowanie",
@@ -183,7 +210,14 @@
             "clear_all_cache": "Wyczyść całą pamięć podręczną",
             "clear_all_cache_help": "Usuwa lokalny stan kampanii, kanałów i pochodne dane minera; zachowuje logowanie i ustawienia, a następnie ponownie pobiera dane z Twitcha.",
             "mining_benefits": "Korzyści z Minowania",
-            "mining_benefits_help": "Wybierz rodzaje dropów, które chcesz zdobywać."
+            "mining_benefits_help": "Wybierz rodzaje dropów, które chcesz zdobywać.",
+            "multiple_games_found": "Znaleziono kilka gier dla twojego wyszukiwania. Proszę być bardziej precyzywnym.",
+            "manual_game_warning": "„{game}” nie znajduje się na liście dostępnych kampanii. Mimo to dodać do gier do oglądania?",
+            "deselect_all_warning": "Czy na pewno chcesz usunąć wszystkie gry ze swojej listy obserwowanych?",
+            "confirm_btn": "Potwierdź",
+            "cancel_btn": "Anuluj",
+            "game_priority": "Priorytet gry {game}",
+            "remove_game": "Usuń {game}"
         },
         "help": {
             "about": "O Twitch Drops Miner",
@@ -240,6 +274,35 @@
         "wanted": {
             "name": "Kolejka Pożądanych Dropów",
             "none": "Brak pożądanych dropów w kolejce..."
+        },
+        "history": {
+            "title": "Historia dropów",
+            "filter_game": "Filtruj według gry…",
+            "since": "Odebrane od dnia (UTC)",
+            "apply": "Zastosuj",
+            "export": "Eksportuj CSV",
+            "stats": "Statystyki",
+            "clear": "Wyczyść",
+            "total": "Łącznie odebranych dropów",
+            "claimed_at": "Data i godzina",
+            "game": "Gra",
+            "campaign": "Kampania",
+            "drop": "Drop",
+            "rewards": "Nagrody",
+            "minutes": "Minuty",
+            "loading": "Ładowanie historii…",
+            "empty": "Żadne dropy nie pasują do filtrów.",
+            "count": "Łącznie dropów: {total}",
+            "filtered_count": "Wyświetlanie {shown} z {total} zapisanych dropów",
+            "load_error": "Błąd ładowania historii: {error}",
+            "previous": "Poprzednia",
+            "next": "Następna",
+            "by_game": "Według gry",
+            "by_month": "Według miesiąca",
+            "clear_confirm": "Usunąć całą lokalną historię dropów? Tej operacji nie można cofnąć.",
+            "cleared": "Historia wyczyszczona.",
+            "clear_error": "Nie udało się wyczyścić historii: {error}",
+            "stats_error": "Nie udało się załadować statystyk: {error}"
         }
     }
 }

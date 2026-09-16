@@ -32,6 +32,32 @@
         "no_connection": "Keine Verbindung zu Twitch möglich. Erneuter Versuch in {seconds} Sekunden..."
     },
     "gui": {
+        "auth": {
+            "title": "Dashboard-Passwort",
+            "help": "Schütze das Dashboard mit einem Passwort. Eine Änderung meldet andere Sitzungen ab. Beim Deaktivieren wird das Passwort gelöscht.",
+            "login_title": "Dashboard entsperren",
+            "password": "Passwort",
+            "remember": "30 Tage angemeldet bleiben",
+            "login": "Anmelden",
+            "logout": "Abmelden",
+            "current_password": "Aktuelles Passwort",
+            "new_password": "Neues Passwort (mindestens 8 Zeichen)",
+            "confirm_password": "Neues Passwort bestätigen",
+            "enable": "Passwortschutz aktivieren",
+            "change": "Passwort ändern",
+            "disable": "Schutz deaktivieren und Passwort löschen",
+            "enabled": "Passwortschutz ist aktiviert.",
+            "disabled": "Passwortschutz ist deaktiviert.",
+            "invalid_password": "Falsches Passwort.",
+            "password_length": "Verwende 8 bis 1024 Zeichen.",
+            "password_mismatch": "Die Passwörter stimmen nicht überein.",
+            "rate_limited": "Zu viele Versuche. Warte eine Minute und versuche es erneut.",
+            "auth_changed": "Die Anmeldeeinstellungen wurden geändert. Lade die Seite neu.",
+            "authentication_required": "Bitte erneut anmelden.",
+            "forbidden": "Anfrage blockiert. Öffne die App direkt und versuche es erneut.",
+            "invalid_request": "Ungültige Anfrage.",
+            "request_failed": "Anfrage fehlgeschlagen. Versuche es erneut."
+        },
         "output": "Protokoll",
         "status": {
             "name": "Status",
@@ -50,7 +76,8 @@
             "main": "Hauptseite",
             "inventory": "Inventar",
             "settings": "Einstellungen",
-            "help": "Hilfe"
+            "help": "Hilfe",
+            "history": "Verlauf"
         },
         "login": {
             "name": "Login",
@@ -183,7 +210,14 @@
             "add_game": "Add Game",
             "add_game_hint": " Click \"Add Game\" to add it manually.",
             "mining_benefits": "Mining-Vorteile",
-            "mining_benefits_help": "Wählen Sie, welche Arten von Drops Sie minen möchten."
+            "mining_benefits_help": "Wählen Sie, welche Arten von Drops Sie minen möchten.",
+            "multiple_games_found": "Mehrere Spiele für deine Suche gefunden. Bitte sei spezifischer.",
+            "manual_game_warning": "\"{game}\" steht nicht in der Liste verfügbarer Kampagnen. Trotzdem zu den anzusehenden Spielen hinzufügen?",
+            "deselect_all_warning": "Bist du sicher, dass du alle Spiele aus deiner Beobachtungsliste entfernen möchtest?",
+            "confirm_btn": "Bestätigen",
+            "cancel_btn": "Abbrechen",
+            "game_priority": "Priorität für {game}",
+            "remove_game": "{game} entfernen"
         },
         "help": {
             "about": "Über Twitch Drops Miner",
@@ -240,6 +274,35 @@
         "wanted": {
             "name": "Wunsch-Drops Warteschlange",
             "none": "Keine Wunsch-Drops in der Warteschlange..."
+        },
+        "history": {
+            "title": "Drop-Verlauf",
+            "filter_game": "Nach Spiel filtern…",
+            "since": "Abgeholt am oder nach (UTC)",
+            "apply": "Anwenden",
+            "export": "CSV exportieren",
+            "stats": "Statistik",
+            "clear": "Leeren",
+            "total": "Insgesamt abgeholte Drops",
+            "claimed_at": "Datum und Uhrzeit",
+            "game": "Spiel",
+            "campaign": "Kampagne",
+            "drop": "Drop",
+            "rewards": "Belohnungen",
+            "minutes": "Minuten",
+            "loading": "Verlauf wird geladen…",
+            "empty": "Keine Drops entsprechen diesen Filtern.",
+            "count": "Drops insgesamt: {total}",
+            "filtered_count": "{shown} von {total} erfassten Drops angezeigt",
+            "load_error": "Fehler beim Laden des Verlaufs: {error}",
+            "previous": "Zurück",
+            "next": "Weiter",
+            "by_game": "Nach Spiel",
+            "by_month": "Nach Monat",
+            "clear_confirm": "Den gesamten lokal gespeicherten Drop-Verlauf löschen? Dies kann nicht rückgängig gemacht werden.",
+            "cleared": "Verlauf geleert.",
+            "clear_error": "Verlauf konnte nicht geleert werden: {error}",
+            "stats_error": "Statistik konnte nicht geladen werden: {error}"
         }
     }
 }

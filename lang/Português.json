@@ -32,6 +32,32 @@
         "no_connection": "Sem conexão com a TWITCH, reconectando em {seconds} segundos..."
     },
     "gui": {
+        "auth": {
+            "title": "Palavra-passe do painel",
+            "help": "Proteja o painel com uma palavra-passe. Alterá-la termina as outras sessões. Desativar a proteção apaga a palavra-passe.",
+            "login_title": "Desbloquear o painel",
+            "password": "Palavra-passe",
+            "remember": "Manter a sessão durante 30 dias",
+            "login": "Entrar",
+            "logout": "Sair",
+            "current_password": "Palavra-passe atual",
+            "new_password": "Nova palavra-passe (mínimo de 8 caracteres)",
+            "confirm_password": "Confirmar nova palavra-passe",
+            "enable": "Ativar proteção por palavra-passe",
+            "change": "Alterar palavra-passe",
+            "disable": "Desativar proteção e apagar palavra-passe",
+            "enabled": "A proteção por palavra-passe está ativa.",
+            "disabled": "A proteção por palavra-passe está desativada.",
+            "invalid_password": "Palavra-passe incorreta.",
+            "password_length": "Utilize entre 8 e 1024 caracteres.",
+            "password_mismatch": "As palavras-passe não coincidem.",
+            "rate_limited": "Demasiadas tentativas. Aguarde um minuto e tente novamente.",
+            "auth_changed": "As definições de acesso mudaram. Recarregue a página.",
+            "authentication_required": "Inicie sessão novamente.",
+            "forbidden": "Pedido bloqueado. Abra esta aplicação diretamente e tente novamente.",
+            "invalid_request": "Pedido inválido.",
+            "request_failed": "O pedido falhou. Tente novamente."
+        },
         "output": "Saída",
         "status": {
             "name": "Status",
@@ -50,7 +76,8 @@
             "main": "Principal",
             "inventory": "Inventario",
             "settings": "Configurações",
-            "help": "Ajuda"
+            "help": "Ajuda",
+            "history": "Histórico"
         },
         "login": {
             "name": "Tela de login",
@@ -183,7 +210,14 @@
             "clear_all_cache": "Limpar todo o cache",
             "clear_all_cache_help": "Limpa o estado local de campanhas, canais e dados derivados do minerador; mantém o login e as configurações e depois recarrega os dados da Twitch.",
             "mining_benefits": "Benefícios de Mineração",
-            "mining_benefits_help": "Selecione quais tipos de drops você deseja minerar."
+            "mining_benefits_help": "Selecione quais tipos de drops você deseja minerar.",
+            "multiple_games_found": "Vários jogos encontrados para sua pesquisa. Por favor, seja mais específico.",
+            "manual_game_warning": "\"{game}\" não está na lista de campanhas disponíveis. Adicionar aos jogos para assistir mesmo assim?",
+            "deselect_all_warning": "Tem certeza de que deseja remover todos os jogos da sua lista de observação?",
+            "confirm_btn": "Confirmar",
+            "cancel_btn": "Cancelar",
+            "game_priority": "Prioridade de {game}",
+            "remove_game": "Remover {game}"
         },
         "help": {
             "about": "Sobre o Twitch Drops Miner",
@@ -240,6 +274,35 @@
         "wanted": {
             "name": "Fila de Drops Desejados",
             "none": "Nenhum drop desejado na fila..."
+        },
+        "history": {
+            "title": "Histórico de drops",
+            "filter_game": "Filtrar por jogo…",
+            "since": "Resgatado a partir de (UTC)",
+            "apply": "Aplicar",
+            "export": "Exportar CSV",
+            "stats": "Estatísticas",
+            "clear": "Limpar",
+            "total": "Total de drops resgatados",
+            "claimed_at": "Data e hora",
+            "game": "Jogo",
+            "campaign": "Campanha",
+            "drop": "Drop",
+            "rewards": "Recompensas",
+            "minutes": "Minutos",
+            "loading": "Carregando histórico…",
+            "empty": "Nenhum drop corresponde a estes filtros.",
+            "count": "Total de drops: {total}",
+            "filtered_count": "Exibindo {shown} de {total} drops registrados",
+            "load_error": "Erro ao carregar histórico: {error}",
+            "previous": "Anterior",
+            "next": "Próximo",
+            "by_game": "Por jogo",
+            "by_month": "Por mês",
+            "clear_confirm": "Excluir todo o histórico local de drops? Esta ação não pode ser desfeita.",
+            "cleared": "Histórico limpo.",
+            "clear_error": "Falha ao limpar histórico: {error}",
+            "stats_error": "Falha ao carregar estatísticas: {error}"
         }
     }
 }

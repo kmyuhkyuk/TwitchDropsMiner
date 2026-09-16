@@ -2,17 +2,22 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import quote
 
 import socketio
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from src.config.paths import DATA_DIR
 from src.version import __version__
+from src.web.auth import AuthAPI, AuthMiddleware, AuthSocketServer, WebAuth
 
 
 if TYPE_CHECKING:
@@ -27,22 +32,19 @@ logger = logging.getLogger("TwitchDrops")
 # Create FastAPI app
 app = FastAPI(title="Twitch Drops Miner Web", version=__version__)
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+web_auth = WebAuth(DATA_DIR / "web_auth.json")
+sio = AuthSocketServer(web_auth)
+app.include_router(AuthAPI(web_auth, sio).router)
+app.add_middleware(AuthMiddleware, auth=web_auth)
+# The outer guard covers Engine.IO polling and WebSocket upgrades too.
+socket_app = AuthMiddleware(socketio.ASGIApp(sio, app), web_auth)
 
-# Create Socket.IO server
-sio = socketio.AsyncServer(
-    async_mode="asgi", cors_allowed_origins="*", logger=False, engineio_logger=False
-)
 
-# Wrap with ASGI app
-socket_app = socketio.ASGIApp(sio, app)
+@app.exception_handler(RequestValidationError)
+async def validation_error(request, exc):
+    if request.url.path.startswith("/api/auth/"):
+        return JSONResponse({"detail": "invalid_request"}, status_code=422)
+    return await request_validation_exception_handler(request, exc)
 
 # Global references (set by main.py)
 gui_manager: WebGUIManager | None = None
@@ -385,6 +387,78 @@ async def clear_all_cache():
     return {"success": True}
 
 
+@app.get("/api/history")
+async def get_history(game: str | None = None, since: str | None = None, limit: int | None = None):
+    """Get claimed drop history with optional filters."""
+    if not twitch_client:
+        raise HTTPException(status_code=503, detail="Twitch client not initialized")
+
+    since_dt = _parse_history_since(since)
+    limit = min(limit, 5000) if limit else None
+    entries = twitch_client.drop_history.get_entries(
+        game=game or None, since=since_dt, limit=limit
+    )
+    return {"total": twitch_client.drop_history.total_count, "entries": entries}
+
+
+@app.get("/api/history/export.csv")
+async def export_history_csv(game: str | None = None, since: str | None = None):
+    """Export claimed drop history as CSV (UTF-8 BOM for Excel)."""
+    if not twitch_client:
+        raise HTTPException(status_code=503, detail="Twitch client not initialized")
+
+    since_dt = _parse_history_since(since)
+    csv_content = twitch_client.drop_history.to_csv(game=game or None, since=since_dt)
+    filename = "drop_history.csv" if not game else f"drop_history_{game}.csv"
+    return PlainTextResponse(
+        content="\ufeff" + csv_content,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="drop_history.csv"; '
+                f"filename*=UTF-8''{quote(filename, safe='')}"
+            )
+        },
+    )
+
+
+@app.get("/api/history/stats")
+async def get_history_stats():
+    """Get aggregated drop history statistics."""
+    if not twitch_client:
+        raise HTTPException(status_code=503, detail="Twitch client not initialized")
+
+    return {
+        "total_drops": twitch_client.drop_history.total_count,
+        "by_game": twitch_client.drop_history.stats_by_game(),
+        "by_month": twitch_client.drop_history.stats_by_month(),
+    }
+
+
+@app.delete("/api/history")
+async def clear_history():
+    """Delete all claimed drop history."""
+    if not twitch_client:
+        raise HTTPException(status_code=503, detail="Twitch client not initialized")
+
+    twitch_client.drop_history.clear()
+    return {"success": True}
+
+
+def _parse_history_since(since: str | None) -> datetime | None:
+    """Parse the 'since' query parameter (ISO date/date-time) into a UTC datetime."""
+    if not since:
+        return None
+    try:
+        # Accept both a bare date (YYYY-MM-DD) and a full ISO timestamp
+        parsed = datetime.fromisoformat(since)
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return None
+
+
 @app.post("/api/close")
 async def trigger_close():
     """Trigger application shutdown"""
@@ -414,6 +488,8 @@ async def exit_manual_mode():
 @sio.event
 async def connect(sid, environ):
     """Client connected"""
+    if not sio.register(sid, environ["asgi.scope"]):
+        return False
     logger.info(f"Web client connected: {sid}")
 
     # Send initial state to new client
@@ -438,12 +514,15 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     """Client disconnected"""
+    sio.forget(sid)
     logger.info(f"Web client disconnected: {sid}")
 
 
 @sio.event
 async def request_login(sid):
     """Client requested login form submission"""
+    if not await sio.authorize(sid):
+        return
     logger.info(f"Login request from client: {sid}")
     # The actual login data comes via REST API
 
@@ -451,6 +530,8 @@ async def request_login(sid):
 @sio.event
 async def request_reload(sid):
     """Client requested application reload"""
+    if not await sio.authorize(sid):
+        return
     if twitch_client:
         twitch_client.request_inventory_refresh()
 
@@ -458,6 +539,8 @@ async def request_reload(sid):
 @sio.event
 async def get_wanted_items(sid):
     """Client requested wanted items list"""
+    if not await sio.authorize(sid):
+        return
     if gui_manager:
         await sio.emit("wanted_items_update", gui_manager.get_wanted_game_tree(), to=sid)
 
