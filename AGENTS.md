@@ -293,6 +293,9 @@ progress to an ignored drop while the miner intentionally targets another reward
   before deploying changes to existing auth assets, as with app.js and styles.css.
 - `tests/test_web_auth.py` and `tests/test_web_auth_frontend.py` cover access control,
   credential persistence, cookie lifetimes, CSRF, rate limiting, revocation, and UI errors.
+  The idle socket-expiry regression controls the auth wall clock and captures the
+  scheduled callback. Preserve its remaining-lifetime, disconnect, and cleanup assertions;
+  do not replace them with millisecond session lifetimes or fixed wall-clock sleeps.
   Docker checks `/healthz`, not the protected `/api/status`. Recovery is local: stop the
   miner, restrict access, remove only `data/web_auth.json`, restart and set a new password.
 
@@ -580,11 +583,18 @@ The application uses a web-based interface accessible via browser:
 
 ## Project Scope
 
+This is a hobby project for personal use on the user's own hardware and home network.
+Support is limited to that setup and is provided on a best-effort basis. VPS, cloud,
+other third-party hosting environments, and services operated for other users are
+outside the support scope. Remote dashboard access and Docker support do not expand
+that deployment scope. Keep the README disclaimer and contribution guidance consistent
+with this policy when reviewing proposals or documenting deployment options.
+
 **Supported:**
 
 - ✅ Web GUI - browser-based interface with advanced filtering
-- ✅ Docker deployment - containerized for any platform
-- ✅ Remote access - access from any device on network
+- ✅ Docker deployment - containerized on the user's own home hardware
+- ✅ Remote access - access to the user's home-hosted instance
 - ✅ Headless operation - no display server required
 
 **NOT supported:**
