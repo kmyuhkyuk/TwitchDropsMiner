@@ -118,6 +118,8 @@ If Twitch rejects the embedded browser, select **Use desktop helper** and run th
 matching Windows, Linux, or macOS helper with your dashboard address. The first helper
 to connect is accepted during a ten-minute window; no pairing code is needed.
 See [desktop helper downloads and steps](docs/authentication.md#desktop-helper-fallback).
+For rejected helper logins, report the fixed error code and a redacted miner log;
+see [helper diagnostics](docs/troubleshooting.md#helper-login-error-codes).
 
 Keep session data directories private. On Windows, credential files inherit the
 directory's access permissions (ACLs); Unix file-mode numbers do not verify those
@@ -214,6 +216,7 @@ or [buying the maintainer a coffee](https://buymeacoffee.com/rangermix).
 | [@3lb0z0](https://github.com/3lb0z0) | [#110](https://github.com/rangermix/TwitchDropsMiner/pull/110) |
 | [@birdhimself](https://github.com/birdhimself) | [#41](https://github.com/rangermix/TwitchDropsMiner/pull/41) |
 | [@capkz](https://github.com/capkz) | [#70](https://github.com/rangermix/TwitchDropsMiner/pull/70) |
+| [@Dolverin](https://github.com/Dolverin) | [#142](https://github.com/rangermix/TwitchDropsMiner/pull/142) |
 | [@EthanBlazkowicz](https://github.com/EthanBlazkowicz) | [#33](https://github.com/rangermix/TwitchDropsMiner/pull/33) |
 | [@Klages](https://github.com/Klages) | [#94](https://github.com/rangermix/TwitchDropsMiner/pull/94) · [#95](https://github.com/rangermix/TwitchDropsMiner/pull/95) |
 | [@Knight-sys](https://github.com/Knight-sys) | [#3](https://github.com/rangermix/TwitchDropsMiner/pull/3) |
