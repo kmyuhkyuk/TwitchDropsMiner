@@ -10,6 +10,7 @@ from src.config import DEFAULT_LANG, LANG_PATH
 class StatusMessages(TypedDict):
     terminated: str
     watching: str
+    mining_resumed: str
     goes_online: str
     goes_offline: str
     claimed_drop: str
@@ -33,6 +34,7 @@ class LoginMessages(TypedDict):
     incorrect_login_pass: str
     incorrect_email_code: str
     incorrect_twofa_code: str
+    headless_renewal: str
     status: LoginStatus
 
 
@@ -54,6 +56,15 @@ class GUIStatus(TypedDict):
     fetching_inventory: str
     fetching_campaigns: str
     adding_campaigns: str
+    paused: str
+    pause: str
+    resume: str
+    paused_until: str
+    pause_10m: str
+    pause_1h: str
+    pause_tomorrow: str
+    pause_indefinite: str
+    pause_error: str
     outside_hours: str
 
 
@@ -66,6 +77,14 @@ class GUITabs(TypedDict):
 
 
 class GUIBrowserLogin(TypedDict):
+    token_title: str
+    token_help: str
+    token_label: str
+    token_send: str
+    clipboard_title: str
+    clipboard_help: str
+    clipboard_label: str
+    clipboard_send: str
     title: str
     instructions: str
     finish: str
@@ -167,10 +186,16 @@ class GUIBadges(TypedDict):
 class GUIWanted(TypedDict):
     name: str
     none: str
+    drag_hint: str
+    temporary: str
+    reset: str
+    save_error: str
 
 
 class GUIInvFilters(TypedDict):
     account_link: str
+    status_heading: str
+    rewards_heading: str
     all: str
     linked: str
     active: str
@@ -196,6 +221,12 @@ class GUIInvStatus(TypedDict):
 
 
 class GUIInventory(TypedDict):
+    add_game: str
+    adding_game: str
+    add_game_error: str
+    link_account: str
+    card_view: str
+    list_view: str
     no_campaigns: str
     status: GUIInvStatus
     starts: str
@@ -252,14 +283,22 @@ class GUITelegramSettings(TypedDict):
 
 
 class GUISettings(TypedDict):
+    reward_priority_title: str
+    reward_priority_enable: str
+    reward_priority_rank: str
+    reward_priority_not_mined: str
+    reward_priority_error: str
+    reward_priority_help: str
     allow_unlinked_campaigns: str
     allow_unlinked_campaigns_warning: str
     allow_unlinked_campaigns_save_error: str
     general: GUISettingsGeneral
+    tab_mining: str
+    tab_games: str
+    tab_notifications: str
+    tab_account: str
     discord: GUIDiscordSettings
     telegram: GUITelegramSettings
-    mining_benefits: str
-    mining_benefits_help: str
     reload: str
     reload_campaigns: str
     drop_name_blacklist: str
@@ -280,6 +319,11 @@ class GUISettings(TypedDict):
     search_games: str
     add_game: str
     add_game_hint: str
+    select_linked: str
+    game_linked: str
+    game_not_linked: str
+    game_linked_title: str
+    game_not_linked_title: str
     select_all: str
     deselect_all: str
     deselect_all_warning: str
@@ -304,6 +348,7 @@ class GUISettings(TypedDict):
     mining_hours_start: str
     mining_hours_end: str
     mining_hours_save_error: str
+    proxy_save_error: str
 
 
 class GUIHelp(TypedDict):
@@ -407,6 +452,8 @@ class GUIMessages(TypedDict):
 
 class HelperErrors(TypedDict):
     destination: str
+    ca_file: str
+    insecure_tls: str
     disabled: str
     expired: str
     busy: str
@@ -458,9 +505,13 @@ class HelperMessages(TypedDict):
     cancelled: str
     wait_to_close: str
     tdm_help: str
+    ca_file_help: str
+    ca_file_in_use: str
     chrome_help: str
     language_help: str
     no_pause_help: str
+    insecure_help: str
+    insecure_warning: str
 
 
 class Translation(TypedDict):

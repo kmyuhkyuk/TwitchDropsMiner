@@ -10,6 +10,7 @@ import shutil
 import time
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, contextmanager, nullcontext
+from dataclasses import replace
 from typing import Any
 
 from src.auth.imported_session import ImportedSession
@@ -58,6 +59,10 @@ class SessionController:
             yield
         except SessionError as error:
             error.annotate(stage=stage)
+            if (stage in ("issued_validation", "renewal_validation") and error.code == "CATALOG"
+                    and error.diagnostic.reason == "integrity" and getattr(self.issuer, "headless_fallback", False)):
+                # The rejected proof came from the headless fallback (no xvfb-run).
+                error.diagnostic = replace(error.diagnostic, reason="headless_fallback")
             logging.getLogger(__name__).warning("SESSION_DIAGNOSTIC %s", json.dumps(error.diagnostic.to_dict(), sort_keys=True))
             raise
         except Exception:
@@ -123,7 +128,12 @@ class SessionController:
             generation = self.session.status()["generation"]
             account = self.session.status()["user_id"]
             with self._phase("renewal_issuance"):
-                renewed = await self.issuer.issue(seed)
+                if seed.cookie.expires_at <= self.clock():
+                    await self.session._transport.validate_token(seed.bundle.token, account,
+                                                                user_agent=seed.bundle.user_agent)
+                    renewed = await self.issuer.bootstrap(seed.bundle.token)
+                else:
+                    renewed = await self.issuer.issue(seed)
 
             def current() -> bool:
                 self._current(epoch)
@@ -136,6 +146,35 @@ class SessionController:
                                                     expected_user_id=account, authorized=current)
             self._renewal_error = None
             self._renewal_diagnostic = None
+            self.on_change()
+            return result
+
+    async def accept_token(self, token: str, *, authorized: Callable[[], bool]) -> dict[str, Any]:
+        """Bootstrap proof from an explicitly supplied WEB OAuth token, never trust OAuth alone."""
+        epoch = self._epoch
+
+        def current() -> bool:
+            self._current(epoch)
+            if not authorized():
+                raise SessionError("STALE")
+            return True
+
+        async with self._operation(), self._lock:
+            current()
+            with self._phase("captured_validation"):
+                account = await self.session._transport.validate_token(token)
+            current()
+            with self._phase("server_issuance"):
+                renewed = await self.issuer.bootstrap(token)
+            current()
+            with self._phase("issued_validation"):
+                async with self.activation():
+                    result = await self.session.install(
+                        renewed.bundle.to_dict(), expected_user_id=account,
+                        sdk_cookie=renewed.cookie, replace=True, authorized=current,
+                    )
+            self._renewal_error = self._renewal_diagnostic = None
+            self._wake.set()
             self.on_change()
             return result
 
