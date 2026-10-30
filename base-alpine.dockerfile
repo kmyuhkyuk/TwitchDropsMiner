@@ -1,7 +1,7 @@
 FROM alpine:latest AS novnc-assets
 RUN apk add --no-cache novnc
 
-FROM python:alpine
+FROM python:alpine3.23
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 RUN apk upgrade --no-cache \
