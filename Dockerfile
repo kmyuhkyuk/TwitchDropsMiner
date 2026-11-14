@@ -1,4 +1,4 @@
-FROM kmyuhkyuk/twitch-drops-miner-base-alpine
+FROM kmyuhkyuk/twitch-drops-miner-base-alpine:latest
 
 # Set environment variables
 ENV PORT=8080
